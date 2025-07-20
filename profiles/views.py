@@ -1,8 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile, Skill
 from .forms import ProfileForm, ProjectForm, CertificationForm
+
+def calculate_completion_percent(profile):
+    percent = 0
+    if profile.bio:
+        percent += 30
+    if profile.location:
+        percent += 30
+    if profile.skills.exists():
+        percent += 40
+    return percent
 
 @login_required
 def profile_detail(request, username):
@@ -15,7 +25,7 @@ def profile_detail(request, username):
     certification_form = CertificationForm()
 
     if request.method == "POST":
-        # Profil formu gönderildiyse
+
         if 'profile_submit' in request.POST:
             profile_form = ProfileForm(request.POST, instance=profile)
             if profile_form.is_valid():
@@ -34,7 +44,6 @@ def profile_detail(request, username):
 
                 return redirect('profile_detail', username=username)
 
-        # Proje formu gönderildiyse
         elif 'project_submit' in request.POST:
             project_form = ProjectForm(request.POST)
             if project_form.is_valid():
@@ -43,7 +52,6 @@ def profile_detail(request, username):
                 project.save()
                 return redirect('profile_detail', username=username)
 
-        # Sertifika formu gönderildiyse
         elif 'certification_submit' in request.POST:
             certification_form = CertificationForm(request.POST)
             if certification_form.is_valid():
@@ -51,6 +59,26 @@ def profile_detail(request, username):
                 cert.profile = profile
                 cert.save()
                 return redirect('profile_detail', username=username)
+
+        elif 'social_submit' in request.POST:
+            profile.github = request.POST.get('github', '')
+            profile.linkedin = request.POST.get('linkedin', '')
+            profile.website = request.POST.get('website', '')
+            profile.legacy_website = request.POST.get('legacy_website', '')
+            profile.save()
+            return redirect('profile_detail', username=username)
+
+        elif 'internship_submit' in request.POST:
+            profile.internship_type = request.POST.get('internship_type', '')
+            profile.preferred_locations = request.POST.get('preferred_locations', '')
+            profile.open_to_relocate = 'open_to_relocate' in request.POST
+            profile.save()
+            return redirect('profile_detail', username=username)
+
+        elif 'skills_submit' in request.POST:
+            skills_ids = request.POST.getlist('skills')
+            profile.skills.set(skills_ids)
+            return redirect('profile_detail', username=username)
 
     context = {
         'profile_user': user,
@@ -60,8 +88,15 @@ def profile_detail(request, username):
         'years': years,
         'projects': profile.projects.all(),
         'certifications': profile.certifications.all(),
+        'skills_count': profile.skills.count(),
+        'projects_count': profile.projects.count(),
+        'certifications_count': profile.certifications.count(),
+        'profile_views': 0,
+        'completion_percent': calculate_completion_percent(profile),
+        'all_skills': Skill.objects.all(),
     }
     return render(request, 'profiles/profile_detail.html', context)
 @login_required
 def profile_edit(request, username):
     return redirect('profile_detail', username=username)
+
