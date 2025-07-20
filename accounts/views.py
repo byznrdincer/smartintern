@@ -8,10 +8,9 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Registration successful.")
-            return redirect('home')
+            form.save()  # login yapmıyoruz, kayıt sonrası login olmayacak
+            messages.success(request, "Registration successful. You can now log in.")
+            return redirect('login')  # login sayfasına yönlendir
         else:
             messages.error(request, "Please correct the error below.")
     else:
@@ -25,8 +24,8 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, "Login successful.")
-            next_url = request.GET.get('next') or 'home'
-            return redirect(next_url)
+            # Kullanıcıyı kendi profil sayfasına yönlendir
+            return redirect('profile_detail', username=user.username)
         else:
             messages.error(request, "Invalid username or password.")
     else:
@@ -36,4 +35,4 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
-    return redirect('home')
+    return redirect('login')  # logout sonrası login sayfasına dön

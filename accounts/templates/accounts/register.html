@@ -77,6 +77,15 @@
             text-decoration: underline;
             color: #228be6;
         }
+        /* Radio buttons style */
+        .form-check-input:checked {
+            background-color: #0ca678;
+            border-color: #0ca678;
+        }
+        .form-check-label {
+            font-weight: 600;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -168,6 +177,30 @@
                 {% if form.password2.errors %}
                     <ul class="errorlist">
                         {% for error in form.password2.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <!-- User Type Radio Buttons -->
+            <div class="mb-3">
+                <label class="form-label">Register As</label>
+                <div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="user_type" id="studentRadio" value="student"
+                            {% if form.user_type.value == 'student' %}checked{% endif %} required>
+                        <label class="form-check-label" for="studentRadio">Student</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="user_type" id="recruiterRadio" value="recruiter"
+                            {% if form.user_type.value == 'recruiter' %}checked{% endif %} required>
+                        <label class="form-check-label" for="recruiterRadio">Recruiter</label>
+                    </div>
+                </div>
+                {% if form.user_type.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.user_type.errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
                     </ul>

@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',           # Default User model burada
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -58,7 +58,7 @@ ROOT_URLCONF = 'smartintern.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # İstersen buraya template klasörün yolunu ekleyebilirsin
+        'DIRS': [],  # Template klasörü ekleyebilirsin
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,3 +129,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CUSTOM USER MODEL KALDIRILDI
+# AUTH_USER_MODEL = 'accounts.CustomUser'  # Bu satırı kaldırdık
