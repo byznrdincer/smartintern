@@ -80,8 +80,12 @@ def profile_detail(request, username):
             profile.skills.set(skills_ids)
             return redirect('profile_detail', username=username)
 
+    full_name = user.get_full_name()
+
     context = {
         'profile_user': user,
+        'profile': profile, 
+        'full_name': full_name,
         'form': profile_form,
         'project_form': project_form,
         'certification_form': certification_form,
@@ -94,9 +98,10 @@ def profile_detail(request, username):
         'profile_views': 0,
         'completion_percent': calculate_completion_percent(profile),
         'all_skills': Skill.objects.all(),
+        'skills': profile.skills.all(),
     }
     return render(request, 'profiles/profile_detail.html', context)
+
 @login_required
 def profile_edit(request, username):
     return redirect('profile_detail', username=username)
-
