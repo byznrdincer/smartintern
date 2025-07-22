@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Profile, Skill
-from .forms import ProfileForm, ProjectForm, CertificationForm
+from .models import Profile, Skill, Company, Position
+from .forms import ProfileForm, ProjectForm, CertificationForm, CompanyForm, PositionForm
 
 def calculate_completion_percent(profile):
     percent = 0
@@ -11,6 +11,16 @@ def calculate_completion_percent(profile):
     if profile.location:
         percent += 30
     if profile.skills.exists():
+        percent += 40
+    return percent
+
+def calculate_company_completion(company):
+    percent = 0
+    if company.about:
+        percent += 30
+    if company.location:
+        percent += 30
+    if company.positions.exists():
         percent += 40
     return percent
 
@@ -84,7 +94,7 @@ def profile_detail(request, username):
 
     context = {
         'profile_user': user,
-        'profile': profile, 
+        'profile': profile,
         'full_name': full_name,
         'form': profile_form,
         'project_form': project_form,
@@ -103,5 +113,48 @@ def profile_detail(request, username):
     return render(request, 'profiles/profile_detail.html', context)
 
 @login_required
+def company_profile(request, slug):
+    company = get_object_or_404(Company, slug=slug)
+
+    company_form = CompanyForm(instance=company)
+    position_form = PositionForm()
+
+    if request.method == "POST":
+
+        if 'company_info_submit' in request.POST:
+            company_form = CompanyForm(request.POST, instance=company)
+            if company_form.is_valid():
+                company_form.save()
+                return redirect('company_profile', slug=slug)
+
+        elif 'position_submit' in request.POST:
+            position_form = PositionForm(request.POST)
+            if position_form.is_valid():
+                position = position_form.save(commit=False)
+                position.company = company
+                position.save()
+                return redirect('company_profile', slug=slug)
+
+        elif 'social_submit' in request.POST:
+            company.linkedin = request.POST.get('linkedin', '')
+            company.twitter = request.POST.get('twitter', '')
+            company.facebook = request.POST.get('facebook', '')
+            company.save()
+            return redirect('company_profile', slug=slug)
+
+    completion_percent = calculate_company_completion(company)
+
+    context = {
+        'company': company,
+        'profile_views': 0,  # burayı şirket verilerine göre ayarla
+        'open_positions_count': company.positions.count(),
+        'applicants_count': 0,  # Başvuru sayısı varsa çek
+        'completion_percent': completion_percent,
+        'company_form': company_form,
+        'position_form': position_form,
+    }
+    return render(request, 'profiles/company_profile.html', context)
+@login_required
 def profile_edit(request, username):
     return redirect('profile_detail', username=username)
+

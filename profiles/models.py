@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
 class Skill(models.Model):
     name = models.CharField(max_length=100)
@@ -48,3 +49,33 @@ class Certification(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.profile.user.username}"
+
+class Company(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True)
+    industry = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    website = models.URLField(blank=True, null=True)
+    about = models.TextField(blank=True, null=True)
+
+    linkedin = models.URLField(blank=True, null=True)
+    twitter = models.URLField(blank=True, null=True)
+    facebook = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Eğer slug boşsa, name'den otomatik oluştur
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+class Position(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='positions')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.title} at {self.company.name}"

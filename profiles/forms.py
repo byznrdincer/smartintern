@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile, Project, Certification, Skill
+from .models import Profile, Project, Certification, Skill, Company, Position
 
 class ProfileForm(forms.ModelForm):
     class Meta:
@@ -23,3 +23,18 @@ class CertificationForm(forms.ModelForm):
     class Meta:
         model = Certification
         fields = ['name', 'organization', 'date_obtained', 'certificate_url']
+
+# Şirket formu
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ['name', 'industry', 'location', 'website', 'about', 'linkedin', 'twitter', 'facebook']
+        widgets = {
+            'about': forms.Textarea(attrs={'rows': 4}),
+        }
+
+# Açık pozisyon formu
+class PositionForm(forms.ModelForm):
+    class Meta:
+        model = Position
+        fields = ['title', 'description', 'link']

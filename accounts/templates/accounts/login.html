@@ -46,6 +46,14 @@
         .btn-gradient:hover {
             background: linear-gradient(to right, #1864ab, #099268);
         }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn-group button {
+            flex: 1;
+        }
         .form-footer {
             text-align: center;
             margin-top: 20px;
@@ -77,7 +85,7 @@
           <img src="{% static 'images/logo.svg' %}" alt="SmartIntern Logo" style="width: 80px; height: 80px; margin-right: 10px;">
           <span class="brand-logo">SmartIntern</span>
         </div>
-        <form method="post">
+        <form method="post" id="loginForm">
             {% csrf_token %}
             {% if messages %}
                 {% for message in messages %}
@@ -92,12 +100,25 @@
                 <label for="id_password" class="form-label">Password</label>
                 <input type="password" name="password" required id="id_password" class="form-control" placeholder="••••••••">
             </div>
-            <button type="submit" class="btn btn-gradient w-100 mt-2">Login as Student</button>
+
+            <!-- Kullanıcı tipi seçimi gizli input -->
+            <input type="hidden" name="user_type" id="user_type" value="student">
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-gradient" onclick="setUserType('student')">Login as Student</button>
+                <button type="submit" class="btn btn-gradient" style="background: linear-gradient(to right, #ff922b, #fd7e14);" onclick="setUserType('company')">Login as Company</button>
+            </div>
         </form>
         <div class="form-footer">
             <p class="mt-3">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
             <a href="{% url 'home' %}" class="btn-outline-primary">← Back to Home</a>
         </div>
     </div>
+
+    <script>
+        function setUserType(type) {
+            document.getElementById('user_type').value = type;
+        }
+    </script>
 </body>
 </html>
