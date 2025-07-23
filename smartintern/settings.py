@@ -12,6 +12,17 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 # Heroku veya local host izinleri (prod için domain listesi girilebilir)
 ALLOWED_HOSTS = ['*']
 
+# CSRF için güvenilen domainler - mutlaka kendi domainini ekle!
+CSRF_TRUSTED_ORIGINS = [
+    'https://smartintern-c3sf.onrender.com',
+    'http://localhost',
+    'http://127.0.0.1',
+]
+
+# HTTPS kullanıyorsan True yap, değilse False kalmalı
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 # Uygulamalar
 INSTALLED_APPS = [
     'django.contrib.admin',
