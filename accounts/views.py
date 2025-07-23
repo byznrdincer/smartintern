@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from .forms import RegisterForm
-from profiles.models import Profile, Company
+from profiles.models import Profile
+from .models import Company
 
 # ✅ Kayıt olma (Register)
 def register_view(request):
@@ -11,21 +14,14 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user_type = form.cleaned_data.get('user_type')
-
-            if user_type == 'student':
-                Profile.objects.create(user=user)
-            elif user_type == 'recruiter':
-                Company.objects.create(user=user, name=user.username, slug=user.username.lower())
-
-            messages.success(request, "Registration successful. You can now log in.")
-            return redirect('login')
+            login(request, user)
+            messages.success(request, 'Registration successful.')
+            return redirect('home')  # Giriş yaptıktan sonra yönlendirme
         else:
-            messages.error(request, "Please correct the error below.")
+            messages.error(request, 'Registration failed. Please correct the errors.')
     else:
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})
-
 
 # ✅ Giriş yapma (Login)
 def login_view(request):
@@ -34,44 +30,49 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
 
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, "Login successful.")
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
 
-            if user_type == 'student':
-                try:
-                    profile = Profile.objects.get(user=user)
-                    return redirect('profile_detail', username=user.username)
-                except Profile.DoesNotExist:
-                    messages.error(request, "No student profile found.")
-                    logout(request)
-                    return redirect('login')
+            if user is not None:
+                login(request, user)
+                messages.success(request, "Login successful.")
 
-            elif user_type == 'company':
-                try:
-                    company = Company.objects.get(user=user)
-                    return redirect('company_profile', slug=company.slug)
-                except Company.DoesNotExist:
-                    messages.error(request, "No company profile found.")
+                if user_type == 'student':
+                    try:
+                        profile = Profile.objects.get(user=user)
+                        return redirect('profile_detail', username=user.username)
+                    except Profile.DoesNotExist:
+                        messages.error(request, "No student profile found.")
+                        logout(request)
+                        return redirect('login')
+
+                elif user_type == 'company':
+                    try:
+                        company = Company.objects.get(user=user)
+                        return redirect('company_profile', slug=company.slug)
+                    except Company.DoesNotExist:
+                        messages.error(request, "No company profile found.")
+                        logout(request)
+                        return redirect('login')
+
+                else:
+                    messages.error(request, "Invalid user type selected.")
                     logout(request)
                     return redirect('login')
 
             else:
-                messages.error(request, "Invalid user type selected.")
-                logout(request)
-                return redirect('login')
-
+                messages.error(request, "Authentication failed.")
         else:
             messages.error(request, "Invalid username or password.")
-
     else:
         form = AuthenticationForm()
 
     return render(request, 'accounts/login.html', {'form': form})
 
-
 # ✅ Çıkış yapma (Logout)
+@login_required
 def logout_view(request):
     logout(request)
-    messages.info(request, "You have been logged out.")
+    messages.success(request, 'You have been logged out.')
     return redirect('login')
