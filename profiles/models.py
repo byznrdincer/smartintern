@@ -2,11 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 
+
 class Skill(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -30,6 +32,7 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
+
 class Project(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='projects')
     title = models.CharField(max_length=255)
@@ -39,6 +42,7 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.profile.user.username}"
+
 
 class Certification(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='certifications')
@@ -50,7 +54,9 @@ class Certification(models.Model):
     def __str__(self):
         return f"{self.name} - {self.profile.user.username}"
 
+
 class Company(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)  # Null hale getirildi
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
     industry = models.CharField(max_length=255)
@@ -66,10 +72,10 @@ class Company(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        # Eğer slug boşsa, name'den otomatik oluştur
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
 
 class Position(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='positions')

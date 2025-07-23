@@ -105,8 +105,8 @@
             <input type="hidden" name="user_type" id="user_type" value="student">
 
             <div class="btn-group">
-                <button type="submit" class="btn btn-gradient" onclick="setUserType('student')">Login as Student</button>
-                <button type="submit" class="btn btn-gradient" style="background: linear-gradient(to right, #ff922b, #fd7e14);" onclick="setUserType('company')">Login as Company</button>
+                <button type="button" class="btn btn-gradient" onclick="submitLogin('student')">Login as Student</button>
+                <button type="button" class="btn btn-gradient" style="background: linear-gradient(to right, #ff922b, #fd7e14);" onclick="submitLogin('company')">Login as Company</button>
             </div>
         </form>
         <div class="form-footer">
@@ -116,8 +116,9 @@
     </div>
 
     <script>
-        function setUserType(type) {
+        function submitLogin(type) {
             document.getElementById('user_type').value = type;
+            document.getElementById('loginForm').submit();
         }
     </script>
 </body>

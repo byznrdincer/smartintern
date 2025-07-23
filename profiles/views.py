@@ -25,6 +25,16 @@ def calculate_company_completion(company):
     return percent
 
 @login_required
+def profile_redirect(request):
+    try:
+        if hasattr(request.user, 'company'):
+            return redirect('company_profile', slug=request.user.company.slug)
+        else:
+            return redirect('profile_detail', username=request.user.username)
+    except Company.DoesNotExist:
+        return redirect('profile_detail', username=request.user.username)
+
+@login_required
 def profile_detail(request, username):
     user = get_object_or_404(User, username=username)
     profile, created = Profile.objects.get_or_create(user=user)
@@ -35,15 +45,12 @@ def profile_detail(request, username):
     certification_form = CertificationForm()
 
     if request.method == "POST":
-
         if 'profile_submit' in request.POST:
             profile_form = ProfileForm(request.POST, instance=profile)
             if profile_form.is_valid():
                 profile_form.save()
-
                 full_name = request.POST.get("full_name", "").strip()
                 email = request.POST.get("email", "").strip()
-
                 if full_name:
                     names = full_name.split()
                     user.first_name = names[0]
@@ -51,7 +58,6 @@ def profile_detail(request, username):
                 if email:
                     user.email = email
                 user.save()
-
                 return redirect('profile_detail', username=username)
 
         elif 'project_submit' in request.POST:
@@ -90,12 +96,10 @@ def profile_detail(request, username):
             profile.skills.set(skills_ids)
             return redirect('profile_detail', username=username)
 
-    full_name = user.get_full_name()
-
     context = {
         'profile_user': user,
         'profile': profile,
-        'full_name': full_name,
+        'full_name': user.get_full_name(),
         'form': profile_form,
         'project_form': project_form,
         'certification_form': certification_form,
@@ -115,12 +119,10 @@ def profile_detail(request, username):
 @login_required
 def company_profile(request, slug):
     company = get_object_or_404(Company, slug=slug)
-
     company_form = CompanyForm(instance=company)
     position_form = PositionForm()
 
     if request.method == "POST":
-
         if 'company_info_submit' in request.POST:
             company_form = CompanyForm(request.POST, instance=company)
             if company_form.is_valid():
@@ -142,19 +144,17 @@ def company_profile(request, slug):
             company.save()
             return redirect('company_profile', slug=slug)
 
-    completion_percent = calculate_company_completion(company)
-
     context = {
         'company': company,
-        'profile_views': 0,  # burayı şirket verilerine göre ayarla
+        'profile_views': 0,
         'open_positions_count': company.positions.count(),
-        'applicants_count': 0,  # Başvuru sayısı varsa çek
-        'completion_percent': completion_percent,
+        'applicants_count': 0,
+        'completion_percent': calculate_company_completion(company),
         'company_form': company_form,
         'position_form': position_form,
     }
     return render(request, 'profiles/company_profile.html', context)
+
 @login_required
 def profile_edit(request, username):
     return redirect('profile_detail', username=username)
-
