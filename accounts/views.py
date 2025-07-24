@@ -5,8 +5,8 @@ from django.contrib import messages
 from .forms import RegisterForm
 from profiles.models import Profile, Company
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
- 
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -21,15 +21,22 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})
 
-# ✅ Giriş yapma (Login)
 def login_view(request):
     if request.method == 'POST':
         user_type = request.POST.get('user_type')
         form = AuthenticationForm(request, data=request.POST)
 
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email_or_username = form.cleaned_data.get('username')  # Formdaki input name username, ama email gelebilir
             password = form.cleaned_data.get('password')
+
+            # Email ile kullanıcıyı bulmaya çalış
+            try:
+                user_obj = User.objects.get(email=email_or_username)
+                username = user_obj.username
+            except User.DoesNotExist:
+                username = email_or_username  # Direkt username olarak devam et
+
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
@@ -68,7 +75,6 @@ def login_view(request):
 
     return render(request, 'accounts/login.html', {'form': form})
 
-# ✅ Çıkış yapma (Logout)
 @login_required
 def logout_view(request):
     logout(request)
